@@ -1,0 +1,78 @@
+#!/bin/sh
+# Fake pkg-config for webOS cross-compilation
+
+PDK_ROOT=/home/stark/HPwebOS/PDK
+
+# Extract package name from arguments
+PKG=""
+CMD=""
+for arg in "$@"; do
+    case "$arg" in
+        --version|--modversion|--cflags|--libs|--static)
+            CMD="$arg"
+            ;;
+        sdl|SDL)
+            PKG="sdl"
+            ;;
+        zlib)
+            PKG="zlib"
+            ;;
+        libpng|png)
+            PKG="png"
+            ;;
+        *)
+            # Might be the package name
+            if [ -z "$PKG" ]; then
+                PKG="$arg"
+            fi
+            ;;
+    esac
+done
+
+case "$PKG" in
+    sdl|SDL)
+        case "$CMD" in
+            --version|--modversion)
+                echo "1.2.14"
+                ;;
+            --cflags)
+                echo "-I${PDK_ROOT}/include -I${PDK_ROOT}/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT"
+                ;;
+            --libs|--static)
+                echo "-L${PDK_ROOT}/device/lib -lSDL"
+                ;;
+        esac
+        ;;
+    zlib)
+        case "$CMD" in
+            --version|--modversion)
+                echo "1.2.5"
+                ;;
+            --cflags)
+                echo "-I${PDK_ROOT}/include"
+                ;;
+            --libs|--static)
+                echo "-L${PDK_ROOT}/device/lib -lz"
+                ;;
+        esac
+        ;;
+    png|libpng)
+        case "$CMD" in
+            --version|--modversion)
+                echo "1.2.46"
+                ;;
+            --cflags)
+                echo "-I${PDK_ROOT}/include"
+                ;;
+            --libs|--static)
+                echo "-L${PDK_ROOT}/device/lib -lpng12 -lz"
+                ;;
+        esac
+        ;;
+    *)
+        # Unknown package - fail
+        exit 1
+        ;;
+esac
+
+exit 0
